@@ -1,0 +1,100 @@
+:root {
+  --color-primary: #2d68ff;
+  --color-primary-hover: #1e51d3;
+  --color-surface: #ffffff;
+  --color-background: #f4f5f7;
+  --color-text: #050038;
+  --color-text-secondary: #6e7787;
+  --color-border: #e1e3e5;
+  --color-border-hover: #c4c7cc;
+  
+  --shadow-sm: 0 2px 4px rgba(5, 0, 56, 0.05);
+  --shadow-md: 0 4px 8px rgba(5, 0, 56, 0.08), 0 0 1px rgba(5, 0, 56, 0.1);
+  --shadow-lg: 0 12px 24px rgba(5, 0, 56, 0.12), 0 0 1px rgba(5, 0, 56, 0.1);
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  /* Light dot grid background */
+  background-image: 
+    linear-gradient(to right, #e8e9eb 1px, transparent 1px),
+    linear-gradient(to bottom, #e8e9eb 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Base styles for floating UI panels */
+.floating-panel {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+}
+
+/* Tool buttons */
+.tool-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  transition: background-color 0.15s ease;
+}
+
+.tool-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.tool-btn.active {
+  color: var(--color-primary);
+  background-color: #eff3ff;
+}
+
+/* Standard Buttons */
+.btn {
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
