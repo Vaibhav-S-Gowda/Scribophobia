@@ -1,7 +1,7 @@
 {
   "name": "infinitecanvas-backend",
   "version": "1.0.0",
-  "description": "Backend for InfiniteCanvas AI",
+  "description": "Backend for Scribophobia",
   "main": "dist/server.js",
   "engines": {
     "node": ">=18.0.0"
