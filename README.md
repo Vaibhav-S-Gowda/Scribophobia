@@ -1,57 +1,57 @@
-# Scribophobia
+<div align="center">
+  <h1>Scribophobia</h1>
+  <p><b>Conquer the blank canvas.</b> A real-time, collaborative infinite whiteboard for sketching, diagramming, and system design.</p>
+  
+  <p>
+    <a href="https://scribophobia.vercel.app/" target="_blank">
+      <img src="https://img.shields.io/badge/Live_Demo-scribophobia.vercel.app-000000?style=for-the-badge&logo=vercel" alt="Live Demo">
+    </a>
+  </p>
 
-> Conquer the blank canvas. A real-time, collaborative infinite whiteboard for sketching, diagramming, and system design.
-
-<!-- ![Scribophobia Banner](Screenshot%202026-04-24%20183901.png) -->
+  <p>
+    <img src="https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React 18" />
+    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Socket.io-010101?style=flat-square&logo=socket.io&logoColor=white" alt="Socket.io" />
+    <img src="https://img.shields.io/badge/Node.js-43853D?style=flat-square&logo=node.js&logoColor=white" alt="Node.js" />
+    <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
+  </p>
+</div>
 
 ---
 
 ## Overview
 
-Scribophobia is a full-stack collaborative whiteboard built for teams. Multiple users can draw, annotate, and design system architectures together in real time — all changes sync instantly across every connected session.
+**Scribophobia** is a full-stack collaborative whiteboard built for teams. Multiple users can draw, annotate, and design system architectures together in real time — all changes sync instantly across every connected session with near-zero latency.
 
 ---
 
 ## Features
 
-### Drawing Tools
+### 🖌️ Drawing Tools
 - **Pen** — smooth freehand drawing with a cursive stroke feel
 - **Marker** — bold, thick strokes for emphasis
 - **Smart Pen** — intelligent drawing mode
 - **Lasso** — freehand selection of canvas objects
-- **Eraser** — whiteboard-style block eraser
-- **Pixel Eraser** — precise pixel-level erasure
+- **Eraser & Pixel Eraser** — precise, whiteboard-style erasure
 
-### Shapes
-- Connectors: Line, Arrow, Elbow Arrow, Block Arrow
-- Primitives: Rectangle, Oval, Rhombus, Triangle, Divider
-- All shapes are draggable, resizable, and synchronized in real time
+### Shapes & Primitives
+- **Connectors:** Line, Arrow, Elbow Arrow, Block Arrow
+- **Primitives:** Rectangle, Oval, Rhombus, Triangle, Divider
+- *All shapes are draggable, resizable, and synchronized in real time.*
 
 ### Text & Notes
 - **Text Tool** — click to place editable inline text
-- **Sticky Notes** — draggable annotation cards
+- **Sticky Notes** — draggable annotation cards with multiple color options
 
-### Developer Mode (Architecture Assist)
-- Place architecture nodes: **Server**, **Database**, **Client**, **Queue**, **Cache**
-- Draw connections between nodes using the **Line** tool
-- Intelligent **Architecture Assist** — connecting a Server to a Database automatically suggests a Redis Cache node at the midpoint
-
-### Canvas Controls
+### Infinite Canvas & Navigation
 - **Infinite canvas** — pan with `Alt+Click` or middle mouse button
-- **Zoom** — pinch/scroll to zoom or use the `+` / `−` buttons (10% increments), clamped between 10% and 500%
-- **Zoom display** — real-time percentage shown in the bottom-right corner
+- **Minimap** — interactive mini-map for quick navigation across large boards
+- **Zoom** — pinch/scroll to zoom (10% to 500%), with percentage display
 
-### Collaboration
-- Real-time multi-user sync over **WebSockets** (Socket.io)
-- All object additions, modifications, and deletions broadcast instantly to all connected clients
-- Canvas state persisted in **Redis** — new users receive full board sync on join
-- **Share Modal** — copy invite link to bring others in
-
-### History
-- **Undo / Redo** — full object-level history with network synchronization, so undo/redo actions are reflected for all users
-
-### Board Management
-- **Clear Board** — wipe the canvas for all users with a confirmation prompt
+### Real-Time Collaboration
+- **WebSockets** — low-latency, real-time multi-user sync powered by Socket.io
+- **Redis Persistence** — instant full board sync for newly joined users
+- **Share Modal** — instantly copy an invite link to bring your team in
 
 ---
 
@@ -59,129 +59,59 @@ Scribophobia is a full-stack collaborative whiteboard built for teams. Multiple 
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18 + Vite, TypeScript |
-| Canvas Engine | Fabric.js v7 |
-| State Management | Zustand |
-| Real-time | Socket.io (client + server) |
-| Backend | Node.js + Express |
-| WebSocket Adapter | `@socket.io/redis-adapter` |
-| Persistence | Redis (hot state via hashes + event streams) |
-| Database | PostgreSQL (Docker) |
-| Infrastructure | Docker Compose |
-| Input Validation | Zod |
+| **Frontend** | React 18 + Vite, TypeScript |
+| **Canvas Engine** | Fabric.js v7 |
+| **State Management**| Zustand |
+| **Real-time** | Socket.io (client + server) |
+| **Backend** | Node.js + Express |
+| **WebSocket Adapter**| `@socket.io/redis-adapter` |
+| **Persistence** | Redis (hot state via hashes) |
 
 ---
 
-## Project Structure
-
-```
-├── frontend/               # React + Vite SPA
-│   └── src/
-│       ├── components/
-│       │   ├── Canvas.tsx          # Core Fabric.js canvas engine
-│       │   ├── LeftToolbar.tsx     # Tool palette, undo/redo controls
-│       │   ├── TopBar.tsx          # Board title and share button
-│       │   ├── BottomRightControls.tsx  # Zoom controls
-│       │   ├── ShapePicker.tsx     # Shapes popup menu
-│       │   ├── PenPicker.tsx       # Pen/marker/lasso popup
-│       │   ├── EraserPicker.tsx    # Eraser type popup
-│       │   └── ShareModal.tsx      # Invite link modal
-│       ├── store/
-│       │   └── useCanvasStore.ts   # Global Zustand state
-│       └── lib/
-│           └── socket.ts           # Socket.io client
-│
-├── backend/                # Node.js + Express WebSocket server
-│   └── src/
-│       ├── server.ts               # Express + Socket.io setup
-│       ├── sockets/
-│       │   └── canvasHandler.ts    # Real-time event handlers
-│       └── redis/
-│           └── redisClient.ts      # Redis pub/sub + state clients
-│
-└── docker-compose.yml      # Redis + PostgreSQL services
-```
-
----
-
-## Getting Started
+## Getting Started Locally
 
 ### Prerequisites
 - Node.js 18+
-- Docker & Docker Compose
+- Redis (Local or Upstash Cloud)
 
-### 1. Start Infrastructure
-```bash
-docker-compose up -d
-```
-This starts Redis on `6379` and PostgreSQL on `5432`.
-
-### 2. Start the Backend
+### 1. Start the Backend
 ```bash
 cd backend
 npm install
 npm run dev
 ```
-Server runs on `http://localhost:3001`.
+*Server runs on `http://localhost:3001`.*
 
-### 3. Start the Frontend
+### 2. Start the Frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-App runs on `http://localhost:5173`.
-
-### 4. Open in Browser
-Navigate to `http://localhost:5173` in one or more browser tabs to see real-time collaboration in action.
+*App runs on `http://localhost:5173`.*
 
 ---
 
-## Environment Variables
+## Deployment
 
-### Frontend (`frontend/.env`)
-```env
-VITE_SOCKET_URL=http://localhost:3001
-```
+Scribophobia is optimized for easy deployment to modern cloud platforms:
 
-### Backend (optional)
-```env
-REDIS_URL=redis://localhost:6379
-PORT=3001
-```
+- **Frontend:** Hosted on [Vercel](https://vercel.com/) (Zero-config via `vercel.json`).
+- **Backend:** Hosted on [Render](https://render.com/) (Auto-deployed via `render.yaml`).
+- **Database:** Uses [Upstash Redis](https://upstash.com/) for serverless, low-latency state persistence.
 
 ---
 
-## Architecture
+## 📡 Architecture
 
-```
-Browser A ──┐
-            ├──► Socket.io Server ──► Redis Adapter ──► Redis
-Browser B ──┘        │
-                      └──► Redis Hash (board state)
-                           Redis Stream (event history)
+```mermaid
+graph LR
+    A[Browser A] <-->|WebSocket| B(Socket.io Server)
+    C[Browser B] <-->|WebSocket| B
+    B <-->|Pub/Sub| D[(Redis Adapter)]
+    D <--> E[(Upstash Redis State)]
 ```
 
 - **Hot State**: Every canvas object is stored in a Redis hash (`board:<id>:objects`) keyed by object ID. New clients receive a full sync immediately on connection.
-- **Event Stream**: Object creation and modification events are appended to a Redis stream (`board:<id>:history`) for potential replay/rewind features.
 - **Pub/Sub Adapter**: The Socket.io Redis Adapter enables horizontal scaling across multiple server instances.
-
----
-
-## Socket Events
-
-| Event | Direction | Description |
-|---|---|---|
-| `canvas:sync` | Server → Client | Full board state on join |
-| `object:added` | Bidirectional | New object placed on canvas |
-| `object:moving` | Bidirectional | Real-time position delta (throttled, ~30fps) |
-| `object:modified` | Bidirectional | Final state after transform |
-| `canvas:clear` | Bidirectional | Wipe entire board |
-
----
-
-## Health Check
-```bash
-curl http://localhost:3001/health
-# {"status":"ok"}
-```
