@@ -6,10 +6,12 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { socket } from '../lib/socket';
-import { useCanvasStore, type ToolType } from '../store/useCanvasStore';
+import { useCanvasStore, type ToolType, canvasEvents } from '../store/useCanvasStore';
 import { ShapePicker } from './ShapePicker';
 import { PenPicker } from './PenPicker';
 import { EraserPicker } from './EraserPicker';
+import { StickyPicker } from './StickyPicker';
+import { TemplatePicker } from './TemplatePicker';
 
 const ShapesGridIcon = () => (
   <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -31,9 +33,13 @@ export const LeftToolbar: React.FC = () => {
   const [pickerRect, setPickerRect] = useState<DOMRect | null>(null);
   const [penPickerRect, setPenPickerRect] = useState<DOMRect | null>(null);
   const [eraserPickerRect, setEraserPickerRect] = useState<DOMRect | null>(null);
+  const [stickyPickerRect, setStickyPickerRect] = useState<DOMRect | null>(null);
+  const [templatePickerRect, setTemplatePickerRect] = useState<DOMRect | null>(null);
   const shapeBtnRef = useRef<HTMLButtonElement>(null);
   const penBtnRef = useRef<HTMLButtonElement>(null);
   const eraserBtnRef = useRef<HTMLButtonElement>(null);
+  const stickyBtnRef = useRef<HTMLButtonElement>(null);
+  const templateBtnRef = useRef<HTMLButtonElement>(null);
 
   const PEN_TOOLS = ['pen','marker','smart-pen','lasso'];
   const ERASER_TOOLS = ['eraser','pixel-eraser'];
@@ -61,12 +67,15 @@ export const LeftToolbar: React.FC = () => {
     const rect = shapeBtnRef.current.getBoundingClientRect();
     setPenPickerRect(null);
     setEraserPickerRect(null);
+    setStickyPickerRect(null);
+    setTemplatePickerRect(null);
     setPickerRect(prev => (prev ? null : rect));
   };
 
   const handleClearBoard = () => {
     if (window.confirm('Are you sure you want to clear the entire board? This action cannot be undone.')) {
       socket.emit('canvas:clear');
+      canvasEvents.dispatchEvent(new Event('clear'));
     }
   };
 
@@ -75,6 +84,8 @@ export const LeftToolbar: React.FC = () => {
     const rect = penBtnRef.current.getBoundingClientRect();
     setPickerRect(null);
     setEraserPickerRect(null);
+    setStickyPickerRect(null);
+    setTemplatePickerRect(null);
     setPenPickerRect(prev => (prev ? null : rect));
   };
 
@@ -83,7 +94,29 @@ export const LeftToolbar: React.FC = () => {
     const rect = eraserBtnRef.current.getBoundingClientRect();
     setPickerRect(null);
     setPenPickerRect(null);
+    setStickyPickerRect(null);
+    setTemplatePickerRect(null);
     setEraserPickerRect(prev => (prev ? null : rect));
+  };
+
+  const openStickyPicker = () => {
+    if (!stickyBtnRef.current) return;
+    const rect = stickyBtnRef.current.getBoundingClientRect();
+    setPickerRect(null);
+    setPenPickerRect(null);
+    setEraserPickerRect(null);
+    setTemplatePickerRect(null);
+    setStickyPickerRect(prev => (prev ? null : rect));
+  };
+
+  const openTemplatePicker = () => {
+    if (!templateBtnRef.current) return;
+    const rect = templateBtnRef.current.getBoundingClientRect();
+    setPickerRect(null);
+    setPenPickerRect(null);
+    setEraserPickerRect(null);
+    setStickyPickerRect(null);
+    setTemplatePickerRect(prev => (prev ? null : rect));
   };
 
   return (
@@ -107,10 +140,27 @@ export const LeftToolbar: React.FC = () => {
 
         {!isDeveloperMode ? (
           <>
-            <button className="tool-btn" style={{ width: '40px', height: '40px' }} title="Templates">
+            <button 
+              ref={templateBtnRef}
+              onClick={openTemplatePicker}
+              className={`tool-btn ${templatePickerRect ? 'active' : ''}`} 
+              style={{ width: '40px', height: '40px' }} 
+              title="Templates"
+            >
               <LayoutTemplate size={20} />
             </button>
-            {toolBtn('sticky', <StickyNote size={20} />, 'Sticky Note')}
+            
+            {/* Sticky Notes button → opens StickyPicker */}
+            <button
+              ref={stickyBtnRef}
+              className={`tool-btn ${activeTool === 'sticky' ? 'active' : ''}`}
+              style={{ width: '40px', height: '40px' }}
+              title="Sticky Note"
+              onClick={openStickyPicker}
+            >
+              <StickyNote size={20} />
+            </button>
+
             {toolBtn('text', <Type size={20} />, 'Text')}
 
             {/* Shapes button → opens ShapePicker */}
@@ -222,6 +272,22 @@ export const LeftToolbar: React.FC = () => {
         <EraserPicker
           buttonRect={eraserPickerRect}
           onClose={() => setEraserPickerRect(null)}
+        />
+      )}
+
+      {/* ── Sticky Picker Popup ── */}
+      {stickyPickerRect && (
+        <StickyPicker
+          buttonRect={stickyPickerRect}
+          onClose={() => setStickyPickerRect(null)}
+        />
+      )}
+
+      {/* ── Template Picker Popup ── */}
+      {templatePickerRect && (
+        <TemplatePicker
+          buttonRect={templatePickerRect}
+          onClose={() => setTemplatePickerRect(null)}
         />
       )}
     </div>
