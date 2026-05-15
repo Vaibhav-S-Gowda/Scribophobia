@@ -1,5 +1,5 @@
 {
-  "name": "infinitecanvas-backend",
+  "name": "scribophobia-backend",
   "version": "1.0.0",
   "description": "Backend for Scribophobia",
   "main": "dist/server.js",
@@ -18,9 +18,7 @@
     "ioredis": "^5.4.1",
     "pg": "^8.11.5",
     "socket.io": "^4.7.5",
-    "zod": "^3.23.8"
-  },
-  "devDependencies": {
+    "zod": "^3.23.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/node": "^20.12.11",
