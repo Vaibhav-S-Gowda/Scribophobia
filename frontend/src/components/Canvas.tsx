@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import * as fabric from 'fabric';
 import { socket } from '../lib/socket';
 import { useCanvasStore, canvasEvents, type CanvasAction } from '../store/useCanvasStore';
+import { getStickiesTemplate, get2x2MethodTemplate, getIcebreakerTemplate } from '../utils/templates';
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
@@ -25,6 +26,17 @@ export const Canvas: React.FC = () => {
   const penSize = useCanvasStore((state) => state.penSize);
   const pushAction = useCanvasStore((state) => state.pushAction);
 
+  const saveToStorage = () => {
+    const canvas = fabricRef.current;
+    if (!canvas) return;
+    try {
+      const json = JSON.stringify((canvas as any).toJSON(['id', 'nodeType', 'fromId', 'toId']));
+      localStorage.setItem('scribophobia_canvas', json);
+    } catch (e) {
+      // Ignore storage errors (e.g. quota exceeded)
+    }
+  };
+
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -37,8 +49,35 @@ export const Canvas: React.FC = () => {
     });
     
     fabricRef.current = canvas;
+    (window as any).fabricCanvas = canvas;
+
+    const STORAGE_KEY = 'scribophobia_canvas';
+
+    // Restore from localStorage on mount
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        canvas.loadFromJSON(parsed).then(() => {
+          canvas.renderAll();
+        });
+      } catch (e) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
 
     socket.on('canvas:sync', (objects: any[]) => {
+      if (objects.length === 0) {
+        // If backend is empty but we have local objects, push them to the backend instead of wiping the canvas
+        if (canvas.getObjects().length > 0) {
+          canvas.getObjects().forEach((obj: any) => {
+            const state = obj.toObject(['id', 'nodeType', 'fromId', 'toId']);
+            socket.emit('object:added', state);
+          });
+        }
+        return;
+      }
+      
       canvas.clear();
       fabric.util.enlivenObjects(objects).then((enlivened: any[]) => {
         enlivened.forEach((obj: any) => {
@@ -48,12 +87,14 @@ export const Canvas: React.FC = () => {
            canvas.add(obj);
         });
         canvas.renderAll();
+        saveToStorage();
       });
     });
 
     socket.on('canvas:clear', () => {
       canvas.clear();
       canvas.renderAll();
+      localStorage.removeItem(STORAGE_KEY);
     });
 
     socket.on('object:moving', (data: { id: string; delta: any }) => {
@@ -149,6 +190,7 @@ export const Canvas: React.FC = () => {
       }
       
       socket.emit('object:modified', { id: obj.id, state });
+      saveToStorage();
     });
 
     canvas.on('path:created', (e: any) => {
@@ -204,6 +246,7 @@ export const Canvas: React.FC = () => {
             newState: state
          });
          socket.emit('object:added', state);
+         saveToStorage();
       }
     });
 
@@ -360,9 +403,10 @@ export const Canvas: React.FC = () => {
          } as any);
 
        } else if (activeTool === 'sticky') {
+         const color = useCanvasStore.getState().stickyColor;
          newObj = new fabric.Rect({
            left: pointer.x - 75, top: pointer.y - 75,
-           fill: '#fef08a', width: 150, height: 150,
+           fill: color, width: 150, height: 150,
            shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.25)', blur: 12, offsetX: 4, offsetY: 4 }),
            id,
          } as any);
@@ -452,6 +496,7 @@ export const Canvas: React.FC = () => {
          });
          
          socket.emit('object:added', state);
+         saveToStorage();
          setActiveTool('select');
        }
     };
@@ -629,17 +674,93 @@ export const Canvas: React.FC = () => {
     const onZoom = (e: any) => {
       canvas.zoomToPoint({ x: window.innerWidth / 2, y: window.innerHeight / 2 } as any, e.detail);
     };
+    const onClear = () => {
+      canvas.clear();
+      canvas.renderAll();
+      localStorage.removeItem('scribophobia_canvas');
+    };
+
+    const onAddTemplate = (e: any) => {
+      const { templateName } = e.detail;
+
+      // Safe viewport center calculation (works in all Fabric v7 versions)
+      const vpt = canvas.viewportTransform;
+      const cx = (window.innerWidth / 2 - (vpt ? vpt[4] : 0)) / (vpt ? vpt[0] : 1);
+      const cy = (window.innerHeight / 2 - (vpt ? vpt[5] : 0)) / (vpt ? vpt[3] : 1);
+      const center = { x: cx, y: cy };
+
+      let objects: fabric.Object[] = [];
+      if (templateName === 'Stickies') {
+        objects = getStickiesTemplate(center);
+      } else if (templateName === '2x2 Method') {
+        objects = get2x2MethodTemplate(center);
+      } else if (templateName === 'Icebreaker') {
+        objects = getIcebreakerTemplate(center);
+      }
+
+      const { pushAction: _pushAction } = useCanvasStore.getState();
+      objects.forEach(obj => {
+        canvas.add(obj);
+        socket.emit('object:added', obj.toObject(['id', 'nodeType']));
+        _pushAction({ type: 'add', objectId: (obj as any).id, newState: obj.toObject(['id', 'nodeType']) });
+      });
+      canvas.renderAll();
+      // Save after all template objects are added
+      saveToStorage();
+    };
 
     canvasEvents.addEventListener('undo', onUndo);
     canvasEvents.addEventListener('redo', onRedo);
     canvasEvents.addEventListener('zoom', onZoom);
+    canvasEvents.addEventListener('clear', onClear);
+    canvasEvents.addEventListener('add-template', onAddTemplate);
 
     return () => {
       canvasEvents.removeEventListener('undo', onUndo);
       canvasEvents.removeEventListener('redo', onRedo);
       canvasEvents.removeEventListener('zoom', onZoom);
+      canvasEvents.removeEventListener('clear', onClear);
+      canvasEvents.removeEventListener('add-template', onAddTemplate);
     };
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || (e.target as HTMLElement).isContentEditable) {
+        return;
+      }
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        const canvas = fabricRef.current;
+        if (!canvas) return;
+        
+        const activeObjects = canvas.getActiveObjects();
+        if (activeObjects.length > 0) {
+          if (activeObjects.some((obj: any) => obj.isEditing)) return;
+          
+          activeObjects.forEach((obj: any) => {
+            if (!obj.id) return;
+            const state = obj.toObject(['id', 'nodeType', 'fromId', 'toId']);
+            pushAction({
+              type: 'modify',
+              objectId: obj.id,
+              previousState: state,
+              newState: { deleted: true }
+            });
+            canvas.remove(obj);
+            socket.emit('object:modified', { id: obj.id, state: { deleted: true } });
+          });
+          
+          canvas.discardActiveObject();
+          canvas.requestRenderAll();
+          // Save after deletion
+          saveToStorage();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pushAction]);
 
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'absolute', top: 0, left: 0, zIndex: 1 }}>
