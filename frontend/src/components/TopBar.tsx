@@ -27,7 +27,7 @@ export const TopBar: React.FC = () => {
         <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '8px' }}>The Best Drawing Board</div>
       </div>
 
-      {/* Center section: Banner */}
+      {/* Center section: Banner (Commented out for later use)
       <div className="floating-panel" style={{ padding: '4px 4px 4px 16px', pointerEvents: 'auto', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', fontSize: '13px' }}>
           <span style={{ fontWeight: 500, marginRight: '4px' }}>24h</span> left to save your board.
@@ -36,6 +36,7 @@ export const TopBar: React.FC = () => {
           Sign up for free
         </button>
       </div>
+      */}
 
       {/* Developer Mode Toggle */}
       <div className="floating-panel" style={{ padding: '4px 12px', pointerEvents: 'auto', gap: '8px', position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: '-45px' }}>

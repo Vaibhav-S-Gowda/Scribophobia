@@ -24,8 +24,6 @@ export const ShareModal: React.FC = () => {
         padding: '40px 48px 36px',
         width: '660px',
         maxWidth: 'calc(100vw - 80px)',
-        maxHeight: 'calc(100vh - 40px)',
-        overflowY: 'auto',
         textAlign: 'center',
         boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
       }}>
@@ -35,12 +33,12 @@ export const ShareModal: React.FC = () => {
           onClick={() => setShareModalOpen(false)}
           style={{
             position: 'absolute',
-            top: '-15px', right: '-15px',
-            width: '40px', height: '40px',
-            backgroundColor: '#111', color: '#fff',
+            top: '16px', right: '16px',
+            width: '36px', height: '36px',
+            backgroundColor: '#f5f6f8', color: '#050038',
             border: 'none', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            cursor: 'pointer',
           }}
         >
           <X size={20} />
