@@ -729,11 +729,31 @@ export const Canvas: React.FC = () => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || (e.target as HTMLElement).isContentEditable) {
         return;
       }
+      
+      const canvas = fabricRef.current;
+      if (!canvas) return;
+      const activeObjects = canvas.getActiveObjects();
+
+      // Tool selection shortcuts
+      if (e.key.toLowerCase() === 'v') {
+        setActiveTool('select');
+      } else if (e.key.toLowerCase() === 'p') {
+        setActiveTool('pen');
+      } else if (e.key.toLowerCase() === 't') {
+        setActiveTool('text');
+      }
+
+      // Undo / Redo
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        useCanvasStore.getState().undo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        useCanvasStore.getState().redo();
+      }
+
+      // Delete
       if (e.key === 'Backspace' || e.key === 'Delete') {
-        const canvas = fabricRef.current;
-        if (!canvas) return;
-        
-        const activeObjects = canvas.getActiveObjects();
         if (activeObjects.length > 0) {
           if (activeObjects.some((obj: any) => obj.isEditing)) return;
           

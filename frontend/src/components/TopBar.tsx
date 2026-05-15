@@ -54,22 +54,29 @@ export const TopBar: React.FC = () => {
         </button>
       </div>
 
-      {/* Right section: Avatars & Share */}
-      <div className="floating-panel" style={{ padding: '4px', pointerEvents: 'auto', gap: '8px' }}>
-        <button className="tool-btn" style={{ padding: '8px' }}>
-          <Settings size={18} />
-        </button>
-        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <User size={16} />
+        {/* Right section: Avatars & Share */}
+        <div className="floating-panel" style={{ padding: '4px', pointerEvents: 'auto', gap: '8px' }}>
+          <button className="tool-btn" style={{ padding: '8px' }}>
+            <Settings size={18} />
+          </button>
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <User size={16} />
+          </div>
+          <button 
+            className="btn btn-primary" 
+            style={{ display: 'flex', gap: '6px', backgroundColor: '#fbbf24', color: '#050038' }}
+            onClick={() => useCanvasStore.getState().setJoinModalOpen(true)}
+          >
+            <User size={16} /> Join board
+          </button>
+          <button 
+            className="btn btn-primary" 
+            style={{ display: 'flex', gap: '6px' }}
+            onClick={() => useCanvasStore.getState().setShareModalOpen(true)}
+          >
+            <Share size={16} /> Share board
+          </button>
         </div>
-        <button 
-          className="btn btn-primary" 
-          style={{ display: 'flex', gap: '6px' }}
-          onClick={() => useCanvasStore.getState().setShareModalOpen(true)}
-        >
-          <Share size={16} /> Share board
-        </button>
-      </div>
 
     </div>
   );

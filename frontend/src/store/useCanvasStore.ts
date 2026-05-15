@@ -26,6 +26,8 @@ interface CanvasState {
   toggleDeveloperMode: () => void;
   isShareModalOpen: boolean;
   setShareModalOpen: (isOpen: boolean) => void;
+  isJoinModalOpen: boolean;
+  setJoinModalOpen: (isOpen: boolean) => void;
   isHelpOpen: boolean;
   setHelpOpen: (isOpen: boolean) => void;
   isMinimapOpen: boolean;
@@ -50,6 +52,8 @@ export const useCanvasStore = create<CanvasState>((set) => ({
   toggleDeveloperMode: () => set((state) => ({ isDeveloperMode: !state.isDeveloperMode })),
   isShareModalOpen: false,
   setShareModalOpen: (isOpen) => set({ isShareModalOpen: isOpen }),
+  isJoinModalOpen: false,
+  setJoinModalOpen: (isOpen) => set({ isJoinModalOpen: isOpen }),
   isHelpOpen: false,
   setHelpOpen: (isOpen) => set({ isHelpOpen: isOpen }),
   isMinimapOpen: false,

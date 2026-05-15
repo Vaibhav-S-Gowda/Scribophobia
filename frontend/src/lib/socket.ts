@@ -1,6 +1,20 @@
 import { io } from 'socket.io-client';
 
-const BOARD_ID = 'demo-board-1';
+const generateId = () => Math.random().toString(36).substring(2, 11);
+
+const getBoardId = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  let boardId = urlParams.get('boardId');
+  if (!boardId) {
+    boardId = 'board-' + generateId();
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('boardId', boardId);
+    window.history.replaceState({}, '', newUrl.toString());
+  }
+  return boardId;
+};
+
+export const BOARD_ID = getBoardId();
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 
 export const socket = io(SOCKET_URL, {
