@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: infinitecanvas-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: REDIS_URL
+        sync: false
+    rootDir: backend
