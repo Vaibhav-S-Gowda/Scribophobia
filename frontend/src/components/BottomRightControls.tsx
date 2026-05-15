@@ -5,6 +5,7 @@ import { useCanvasStore, canvasEvents } from '../store/useCanvasStore';
 export const BottomRightControls: React.FC = () => {
   const zoom = useCanvasStore((state) => state.zoom);
   const setZoom = useCanvasStore((state) => state.setZoom);
+  const { setHelpOpen, isHelpOpen, setMinimapOpen, isMinimapOpen } = useCanvasStore();
 
   const handleZoomIn = () => {
     const newZoom = Math.min(5, zoom + 0.1);
@@ -38,10 +39,20 @@ export const BottomRightControls: React.FC = () => {
         
         <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border)', margin: '0 4px' }} />
         
-        <button className="tool-btn" style={{ padding: '8px' }}>
+        <button 
+          className={`tool-btn ${isHelpOpen ? 'active' : ''}`} 
+          style={{ padding: '8px' }} 
+          onClick={() => setHelpOpen(!isHelpOpen)}
+          title="Shortcuts & Help"
+        >
           <HelpCircle size={18} />
         </button>
-        <button className="tool-btn" style={{ padding: '8px' }}>
+        <button 
+          className={`tool-btn ${isMinimapOpen ? 'active' : ''}`} 
+          style={{ padding: '8px' }} 
+          onClick={() => setMinimapOpen(!isMinimapOpen)}
+          title="Minimap"
+        >
           <Map size={18} />
         </button>
       </div>
