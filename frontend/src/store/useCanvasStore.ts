@@ -20,10 +20,16 @@ export type ToolType =
 interface CanvasState {
   activeTool: ToolType;
   setActiveTool: (tool: ToolType) => void;
+  stickyColor: string;
+  setStickyColor: (color: string) => void;
   isDeveloperMode: boolean;
   toggleDeveloperMode: () => void;
   isShareModalOpen: boolean;
   setShareModalOpen: (isOpen: boolean) => void;
+  isHelpOpen: boolean;
+  setHelpOpen: (isOpen: boolean) => void;
+  isMinimapOpen: boolean;
+  setMinimapOpen: (isOpen: boolean) => void;
   penSize: number;
   setPenSize: (size: number) => void;
   undoStack: CanvasAction[];
@@ -38,10 +44,16 @@ interface CanvasState {
 export const useCanvasStore = create<CanvasState>((set) => ({
   activeTool: 'select',
   setActiveTool: (tool) => set({ activeTool: tool }),
+  stickyColor: '#fff9b1',
+  setStickyColor: (color) => set({ stickyColor: color }),
   isDeveloperMode: false,
   toggleDeveloperMode: () => set((state) => ({ isDeveloperMode: !state.isDeveloperMode })),
   isShareModalOpen: false,
   setShareModalOpen: (isOpen) => set({ isShareModalOpen: isOpen }),
+  isHelpOpen: false,
+  setHelpOpen: (isOpen) => set({ isHelpOpen: isOpen }),
+  isMinimapOpen: false,
+  setMinimapOpen: (isOpen) => set({ isMinimapOpen: isOpen }),
   penSize: 3,
   setPenSize: (size) => set({ penSize: size }),
   
