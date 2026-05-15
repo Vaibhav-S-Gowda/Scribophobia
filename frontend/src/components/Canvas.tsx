@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as fabric from 'fabric';
-import { socket } from '../lib/socket';
+import { socket, BOARD_ID } from '../lib/socket';
 import { useCanvasStore, canvasEvents, type CanvasAction } from '../store/useCanvasStore';
 import { getStickiesTemplate, get2x2MethodTemplate, getIcebreakerTemplate } from '../utils/templates';
 
@@ -31,7 +31,7 @@ export const Canvas: React.FC = () => {
     if (!canvas) return;
     try {
       const json = JSON.stringify((canvas as any).toJSON(['id', 'nodeType', 'fromId', 'toId']));
-      localStorage.setItem('scribophobia_canvas', json);
+      localStorage.setItem(`scribophobia_canvas_${BOARD_ID}`, json);
     } catch (e) {
       // Ignore storage errors (e.g. quota exceeded)
     }
@@ -51,7 +51,7 @@ export const Canvas: React.FC = () => {
     fabricRef.current = canvas;
     (window as any).fabricCanvas = canvas;
 
-    const STORAGE_KEY = 'scribophobia_canvas';
+    const STORAGE_KEY = `scribophobia_canvas_${BOARD_ID}`;
 
     // Restore from localStorage on mount
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -199,6 +199,38 @@ export const Canvas: React.FC = () => {
       
       const currentTool = useCanvasStore.getState().activeTool;
       
+      if (currentTool === 'lasso') {
+         path.setCoords();
+         const pathRect = path.getBoundingRect();
+         const selectedObjects = canvas.getObjects().filter((o: any) => {
+            if (o === path || !o.id || !o.selectable) return false;
+            if (o.globalCompositeOperation === 'destination-out') return false;
+            const objRect = o.getBoundingRect();
+            // AABB Intersection check
+            return (
+               objRect.left <= pathRect.left + pathRect.width &&
+               objRect.left + objRect.width >= pathRect.left &&
+               objRect.top <= pathRect.top + pathRect.height &&
+               objRect.top + objRect.height >= pathRect.top
+            );
+         });
+
+         canvas.remove(path);
+
+         if (selectedObjects.length > 0) {
+            if (selectedObjects.length === 1) {
+                canvas.setActiveObject(selectedObjects[0]);
+            } else {
+                const activeSelection = new fabric.ActiveSelection(selectedObjects, { canvas });
+                canvas.setActiveObject(activeSelection);
+            }
+            canvas.requestRenderAll();
+         }
+         
+         useCanvasStore.getState().setActiveTool('select');
+         return;
+      }
+
       if (currentTool === 'eraser' || currentTool === 'pixel-eraser') {
          const intersectingObjects = canvas.getObjects().filter(o => 
              o !== path && (o as any).id && o.intersectsWithObject(path)
@@ -339,7 +371,7 @@ export const Canvas: React.FC = () => {
       if (canvasEl) canvasEl.style.cursor = 'crosshair';
     }
 
-    const penTools = ['pen', 'marker', 'pixel-eraser', 'eraser', 'smart-pen'];
+    const penTools = ['pen', 'marker', 'pixel-eraser', 'eraser', 'smart-pen', 'lasso'];
     canvas.isDrawingMode = penTools.includes(activeTool);
 
     if (canvas.isDrawingMode) {
@@ -357,6 +389,12 @@ export const Canvas: React.FC = () => {
         } else if (activeTool === 'marker') {
            canvas.freeDrawingBrush.color = 'rgba(255, 255, 0, 0.4)';
            canvas.freeDrawingBrush.width = currentSize * 5;
+        } else if (activeTool === 'lasso') {
+           canvas.freeDrawingBrush.color = 'rgba(59, 130, 246, 0.6)';
+           canvas.freeDrawingBrush.width = 2;
+           if ((canvas.freeDrawingBrush as any).getPatternSrc) {
+             (canvas.freeDrawingBrush as any).strokeDashArray = [4, 4];
+           }
         } else {
            canvas.freeDrawingBrush.color = '#050038';
            canvas.freeDrawingBrush.width = currentSize;
@@ -386,7 +424,7 @@ export const Canvas: React.FC = () => {
     const canvas = fabricRef.current;
 
     const handleMouseDown = (options: any) => {
-       const skipTools = ['select', 'pen', 'marker', 'pixel-eraser', 'eraser', 'smart-pen', 'line'];
+       const skipTools = ['select', 'pen', 'marker', 'pixel-eraser', 'eraser', 'smart-pen', 'line', 'lasso'];
        if (skipTools.includes(activeTool)) return;
 
        const pointer = options.scenePoint

@@ -12,6 +12,8 @@ const modifiedSchema = z.object({
   state: z.record(z.string(), z.any()),
 });
 
+const boardState = new Map<string, Map<string, any>>();
+
 export const setupCanvasHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
     const { boardId } = socket.handshake.query;
@@ -21,71 +23,53 @@ export const setupCanvasHandlers = (io: Server) => {
       return;
     }
 
+    if (!boardState.has(boardId)) {
+      boardState.set(boardId, new Map());
+    }
+
     socket.join(boardId);
     console.log(`Socket ${socket.id} joined board ${boardId}`);
 
-    stateClient.hgetall(`board:${boardId}:objects`).then(objects => {
-      const parsedObjects = Object.values(objects).map(objStr => JSON.parse(objStr));
-      socket.emit('canvas:sync', parsedObjects);
-    });
+    const currentObjects = Array.from(boardState.get(boardId)!.values());
+    socket.emit('canvas:sync', currentObjects);
 
-    socket.on('object:moving', async (data: any) => {
+    socket.on('object:moving', (data: any) => {
       try {
         const validated = deltaSchema.parse(data);
-        
         socket.to(boardId).volatile.emit('object:moving', validated);
 
-        const currentObjStr = await stateClient.hget(`board:${boardId}:objects`, validated.id);
-        let obj = currentObjStr ? JSON.parse(currentObjStr) : { id: validated.id };
+        const roomState = boardState.get(boardId)!;
+        let obj = roomState.get(validated.id) || { id: validated.id };
         Object.assign(obj, validated.delta);
-        
-        await stateClient.hset(`board:${boardId}:objects`, validated.id, JSON.stringify(obj));
-
+        roomState.set(validated.id, obj);
       } catch (err) {
-        console.error('Validation or Redis error:', err);
+        console.error('Validation error:', err);
       }
     });
 
-    socket.on('object:added', async (data: any) => {
+    socket.on('object:added', (data: any) => {
       if (!data || !data.id) return;
-      
       socket.to(boardId).emit('object:added', data);
-      await stateClient.hset(`board:${boardId}:objects`, data.id, JSON.stringify(data));
-      
-      stateClient.xadd(`board:${boardId}:history`, '*', 
-        'action', 'add', 
-        'target', data.id, 
-        'payload', JSON.stringify(data)
-      ).catch(err => console.error('Error logging to stream:', err));
+      boardState.get(boardId)!.set(data.id, data);
     });
 
-    socket.on('object:modified', async (data: any) => {
+    socket.on('object:modified', (data: any) => {
       try {
         const validated = modifiedSchema.parse(data);
-        
         socket.to(boardId).emit('object:modified', validated);
 
-        const currentObjStr = await stateClient.hget(`board:${boardId}:objects`, validated.id);
-        let obj = currentObjStr ? JSON.parse(currentObjStr) : { id: validated.id };
+        const roomState = boardState.get(boardId)!;
+        let obj = roomState.get(validated.id) || { id: validated.id };
         Object.assign(obj, validated.state);
-        await stateClient.hset(`board:${boardId}:objects`, validated.id, JSON.stringify(obj));
-
-        stateClient.xadd(`board:${boardId}:history`, '*', 
-          'action', 'modify', 
-          'target', validated.id, 
-          'payload', JSON.stringify(validated.state)
-        ).catch(err => console.error('Error logging to stream:', err));
-
+        roomState.set(validated.id, obj);
       } catch (err) {
-        console.error('Validation or Redis error in modified:', err);
+        console.error('Validation error in modified:', err);
       }
     });
 
-    socket.on('canvas:clear', async () => {
+    socket.on('canvas:clear', () => {
       io.to(boardId).emit('canvas:clear');
-      
-      await stateClient.del(`board:${boardId}:objects`);
-      await stateClient.del(`board:${boardId}:history`);
+      boardState.get(boardId)!.clear();
       console.log(`Board ${boardId} cleared by ${socket.id}`);
     });
 

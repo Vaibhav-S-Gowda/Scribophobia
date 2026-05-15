@@ -133,8 +133,13 @@ export const LeftToolbar: React.FC = () => {
     }}>
 
       {/* ── Main Tools Panel ── */}
-      <div className="floating-panel" style={{
+      <style>{`.main-tools-panel::-webkit-scrollbar { display: none; }`}</style>
+      <div className="floating-panel main-tools-panel" style={{
         flexDirection: 'column', padding: '8px', gap: '4px', pointerEvents: 'auto',
+        maxHeight: 'calc(100vh - 200px)',
+        overflowY: 'auto',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
       }}>
         {toolBtn('select', <MousePointer2 size={20} />, 'Select')}
 
@@ -193,14 +198,6 @@ export const LeftToolbar: React.FC = () => {
               onClick={openEraserPicker}
             >
               <Eraser size={20} />
-            </button>
-
-            <button
-              className="tool-btn"
-              style={{ width: '40px', height: '40px', color: 'var(--color-text-secondary)' }}
-              title="More tools"
-            >
-              <ChevronDown size={18} />
             </button>
           </>
         ) : (
@@ -280,6 +277,14 @@ export const LeftToolbar: React.FC = () => {
         <StickyPicker
           buttonRect={stickyPickerRect}
           onClose={() => setStickyPickerRect(null)}
+        />
+      )}
+
+      {/* ── Template Picker Popup ── */}
+      {templatePickerRect && (
+        <TemplatePicker
+          buttonRect={templatePickerRect}
+          onClose={() => setTemplatePickerRect(null)}
         />
       )}
 

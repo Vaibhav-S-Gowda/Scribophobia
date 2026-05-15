@@ -19,7 +19,7 @@ const io = new Server(server, {
   }
 });
 
-io.adapter(createAdapter(pubClient, subClient));
+// io.adapter(createAdapter(pubClient, subClient)); // Removed redis adapter
 
 setupCanvasHandlers(io);
 
